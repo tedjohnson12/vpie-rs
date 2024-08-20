@@ -27,13 +27,16 @@ extern crate nalgebra as na;
 /// 
 /// * BIC
 /// 
-pub fn bic(
+pub fn bic<T>(
     q: u32,
     n: u32,
     m: u32,
-    ln_l: f64
-) -> f64 {
-    q as f64 * (n as f64 * m as f64).ln() - 2.0 * ln_l
+    ln_l: T
+) -> T
+where 
+    T: na::RealField
+{   
+    T::from_u32(q).unwrap() * (T::from_u32(n).unwrap() * T::from_u32(m).unwrap()).ln() - T::from_u32(2).unwrap() * ln_l
 }
 /// Computes the log likelihood given a set of data.
 /// 

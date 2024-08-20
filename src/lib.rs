@@ -60,7 +60,7 @@ pub fn get_reconstruction<T>(
 where
     T: na::RealField
 {
-    let q = s.len();
+    let _q = s.len();
     let m = f_org.nrows();
     let n = f_org.ncols();
     assert_eq!(f_err.shape(), (m, n), "f_err has shape {:?} but should be {:?}", f_err.shape(), (m, n));
@@ -74,7 +74,7 @@ where
     
     let mut f_rec = na::DMatrix::<T>::zeros(m, n);
 
-    let mut weights = na::DMatrix::<T>::zeros(cutoff_index, cutoff_index);
+    let mut weights: nalgebra::Matrix<T, nalgebra::Dyn, nalgebra::Dyn, nalgebra::VecStorage<T, nalgebra::Dyn, nalgebra::Dyn>>;
     let mut mmat = na::DMatrix::<T>::zeros(cutoff_index, cutoff_index);
 
     if use_mean_error {
@@ -94,7 +94,26 @@ where
     f_rec
 }
 
-
+pub fn calc_bic<T>(
+    f_org: &na::DMatrix<T>,
+    f_err: &na::DMatrix<T>,
+    s: &HashSet<usize>,
+    cutoff_index: usize,
+    use_mean_error: bool
+)-> T
+where
+    T: na::RealField
+{
+    let q = s.len();
+    let m = f_org.nrows();
+    let _n = cutoff_index;
+    let lnl = bic::log_likelihood(
+        f_org.columns(0, cutoff_index).clone_owned(),
+        get_reconstruction(f_org, f_err, s, cutoff_index, use_mean_error).columns(0, cutoff_index).clone_owned(),
+        f_err.columns(0, cutoff_index).clone_owned());
+    
+    bic::bic(q.try_into().unwrap(), _n.try_into().unwrap(), m.try_into().unwrap(),lnl)
+}
 
 #[cfg(test)]
 mod tests {
@@ -188,4 +207,30 @@ mod tests {
         assert_eq!(f_rec, f_rec_exp);
         }
 
+        #[test]
+        fn test_calc_bic() {
+            let spectra = na::Matrix5x6::<f64>::new(
+                1.0, 0.0, 0.0, -1.0, 0.0, 0.0,
+                0.0, 1.0, 0.0, 0.0, 1.0, 0.0,
+                0.0, 0.0, 1.0, 0.0, 0.0, 1.0,
+                1.0, 1.0, 2.0, 1.0, -1.0, 0.0,
+                0.0, 0.0, 0.0, 0.0, 0.0, 1.0,
+            );
+            let err: na::Matrix5x6<f64> = na::Matrix5x6::zeros().add_scalar(1.0);
+            let cutoff_index = 3;
+
+            assert!(
+                calc_bic::<f64>(&na::convert(spectra), &na::convert(err), &HashSet::from([0,1,2]), cutoff_index, false)
+                < calc_bic::<f64>(&na::convert(spectra), &na::convert(err), &HashSet::from([0]), cutoff_index, false)
+            );
+            let cutoff_index = 2;
+            assert!(
+                calc_bic::<f64>(&na::convert(spectra), &na::convert(err), &HashSet::from([0,1]), cutoff_index, false)
+                < calc_bic::<f64>(&na::convert(spectra), &na::convert(err), &HashSet::from([0, 3]), cutoff_index, false),
+                "BIC for (0, 1, 2) should be less than BIC for (0, 2, 3), but got {} vs {}",
+                calc_bic::<f64>(&na::convert(spectra), &na::convert(err), &HashSet::from([0, 1]), cutoff_index, false),
+                calc_bic::<f64>(&na::convert(spectra), &na::convert(err), &HashSet::from([0, 3]), cutoff_index, false)
+            );
+
+        }
 }

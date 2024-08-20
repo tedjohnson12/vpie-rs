@@ -77,7 +77,7 @@ where
     assert_eq!(weights.nrows(), n, "weights has shape {:?} but should be {:?}", weights.shape(), (n, n));
     assert_eq!(weights.ncols(), n, "weights has shape {:?} but should be {:?}", weights.shape(), (n, n));
 
-    weights * weights * bmat.transpose() * (bmat*weights*weights*bmat.transpose()).try_inverse().unwrap() * bmat
+    weights * weights * bmat.transpose() * (bmat*weights*weights*bmat.transpose()).try_inverse().unwrap()
 }
 
 #[cfg(test)]
@@ -129,10 +129,10 @@ mod tests {
         let m = get_mmat::<f64>(&w, &na::convert(bmat));
 
         let f = na::Vector5::new(0.0, 0.0, 1.0, 0.0, 0.0);
-        assert_eq!(f,m.clone()*f, "mf = f, but is {:?}", m*f);
+        assert_eq!(f.transpose(), f.transpose()*m.clone()*bmat.clone(), "mf = f, but is {:?}", m*f);
 
         let f = na::Vector5::new(1.0, 1.0, 1.0, 1.0, 1.0); // impossible
-        assert!(f!=m.clone()*f, "mf = f, but is {:?}", m*f);
+        assert!(f.transpose()!=f.transpose()*m.clone()*bmat.clone(), "mf = f, but is {:?}", m*f);
 
         let w = get_weights::<f64>(&na::convert(na::Vector5::new(1.0, 1.0, 1.0, f64::INFINITY, f64::INFINITY)));
         let m = get_mmat::<f64>(&w, &na::convert(bmat));
@@ -142,7 +142,7 @@ mod tests {
         let b_exp = na::Vector3::new(1.0, 1.0, 1.0);
         assert_eq!(b, b_exp, "b should be [1, 1, 1], but is {:?}", b);
         assert_eq!(f_exp.transpose(), b.clone().transpose()*bmat.clone(), "bB = f, but is {:?}", b.clone().transpose()*bmat.clone());
-        assert_eq!(f_exp.transpose(), f.clone().transpose()*m.clone(), "fm = f, but is {:?}", m*f);
+        assert_eq!(f_exp.transpose(), f.clone().transpose()*m.clone()*bmat.clone(), "fm = f, but is {:?}", m*f);
 
     }
 

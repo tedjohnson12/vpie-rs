@@ -3,7 +3,8 @@
 //! This module is tasked with computing the coefficients $\bm{b}(\bm{t})$ given some set of
 //! indices $s'$
 //! 
-
+use std::collections::HashSet;
+use std::result::Result;
 use nalgebra as na;
 
 #[derive(Debug)]
@@ -96,6 +97,97 @@ where
     }
 }
 
+fn get_coeff_mat_mean_error<T>(
+    f_org_nir: &na::DMatrix<T>,
+    f_err_nir: &na::DMatrix<T>,
+    s: &HashSet<usize>,
+) -> Result<na::DMatrix<T>, MatrixInversionError>
+where
+    T: na::RealField
+    {
+        let q = s.len();
+        let m = f_org_nir.nrows();
+        let mut coeff_mat = na::DMatrix::<T>::zeros(m, q);
+        let bmat = super::get_basis_from_vectors(f_org_nir, s);
+        let weights = get_weights(&f_err_nir.row_mean().transpose());
+
+        let mmat_res = get_mmat(&weights, &bmat);
+
+        match mmat_res {
+            Err(e) => return Result::Err(e),
+            Ok(mmat) => {
+                for i in 0..m {
+                    let bi = f_org_nir.row(i) * &mmat;
+
+                    coeff_mat.set_row(i, &bi);
+                }
+                return Ok(coeff_mat)
+            }
+        }
+
+    }
+
+fn get_coeff_mat_true_error<T>(
+    f_org_nir: &na::DMatrix<T>,
+    f_err_nir: &na::DMatrix<T>,
+    s: &HashSet<usize>,
+) -> Result<na::DMatrix<T>, MatrixInversionError>
+where
+    T: na::RealField
+    {
+        let q = s.len();
+        let m = f_org_nir.nrows();
+        let mut coeff_mat = na::DMatrix::<T>::zeros(m, q);
+        let bmat = super::get_basis_from_vectors(f_org_nir, s);
+        
+        for i in 0..m {
+            let weights = get_weights(&f_err_nir.row(i).transpose());
+            let mmat_res = get_mmat(&weights, &bmat);
+            match mmat_res {
+                Err(e) => return Result::Err(e),
+                Ok(mmat) => {
+                    let bi = f_org_nir.row(i) * &mmat;
+                    coeff_mat.set_row(i, &bi);
+                }
+            }
+        }
+
+        return Ok(coeff_mat)
+    }
+
+
+/// Computes the matrix $\bm{b}(\bm{t})$
+/// 
+/// This matrix can be multiplied by the basis to get the reconstructed spectra
+/// 
+/// # Arguments
+/// 
+/// * `f_org_nir` - NIR spectra ($m \times n'$)
+/// * `f_err_nir` - Uncertainty in the data ($m \times n'$)
+/// * `s` - Set of indices (length $q$)
+/// * `use_mean_error` - Whether to use the mean error in the reconstruction (faster)
+/// 
+/// # Returns
+/// 
+/// * $\bm{b}(\bm{t})$ ($m \times q$)
+pub fn get_coeff_mat<T>(
+    f_org_nir: &na::DMatrix<T>,
+    f_err_nir: &na::DMatrix<T>,
+    s: &HashSet<usize>,
+    use_mean_error: bool
+) -> Result<na::DMatrix<T>, MatrixInversionError>
+where 
+    T: na::RealField
+    {
+        if use_mean_error {
+            get_coeff_mat_mean_error(f_org_nir, f_err_nir, s)
+        } else {
+            get_coeff_mat_true_error(f_org_nir, f_err_nir, s)
+        }
+    }
+
+
+
 #[cfg(test)]
 mod tests {
     use core::f64;
@@ -159,6 +251,32 @@ mod tests {
         assert_eq!(b, b_exp, "b should be [1, 1, 1], but is {:?}", b);
         assert_eq!(f_exp.transpose(), b.clone().transpose()*bmat.clone(), "bB = f, but is {:?}", b.clone().transpose()*bmat.clone());
         assert_eq!(f_exp.transpose(), f.clone().transpose()*m.clone()*bmat.clone(), "fm = f, but is {:?}", m*f);
+
+    }
+
+    #[test]
+    fn test_get_coeff_mat() {
+        let spectra = na::Matrix5x3::<f64>::new(
+            1.0, 0.0, 0.0,
+            0.0, 1.0, 1.0,
+            1.0, 1.0, 1.0,
+            1.0, -1.0, -1.0,
+            0.0, 0.0, 0.0
+        );
+        let s = HashSet::from([0, 1]);
+
+        let err = na::Matrix5x3::<f64>::zeros().add_scalar(1.0);
+
+        let coeffs = get_coeff_mat::<f64>(&na::convert(spectra), &na::convert(err), &s, true).unwrap();
+
+        let coeffs_exp = na::Matrix5x2::<f64>::new(
+            1.0, 0.0,
+            0.0, 1.0,
+            1.0, 1.0,
+            1.0, -1.0,
+            0.0, 0.0,
+        );
+        assert_eq!(coeffs, coeffs_exp)
 
     }
 

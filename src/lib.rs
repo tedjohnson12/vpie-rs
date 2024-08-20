@@ -9,7 +9,7 @@ mod coeffs;
 pub use bic::bic;
 pub use bic::log_likelihood;
 
-pub use coeffs::{get_bi, get_mmat, get_weights};
+pub use coeffs::{get_coeff_mat, get_mmat, get_weights};
 
 
 /// Get the $\mathcal{B}$ matrix from the set of spectra given the set $s$
@@ -51,7 +51,7 @@ where
 /// # Returns
 /// 
 /// * Reconstructed spectra ($m \times n$)
-pub fn get_reconstruction<T>(
+fn get_reconstruction<T>(
     f_org: &na::DMatrix<T>,
     f_err: &na::DMatrix<T>,
     s: &HashSet<usize>,
@@ -260,6 +260,51 @@ mod tests {
                 calc_bic::<f64>(&na::convert(spectra), &na::convert(err), &HashSet::from([0, 1]), cutoff_index, false).unwrap(),
                 calc_bic::<f64>(&na::convert(spectra), &na::convert(err), &HashSet::from([0, 3]), cutoff_index, false).unwrap()
             );
+
+        }
+
+        #[test]
+        fn test_get_vpie() {
+            let spectra_star = na::Matrix5x4::<f64>::new(
+                1.0, 2.0, 1.0, 2.0, // (1, 0)
+                -3.0, -1.0, -1.0, 1.0,// (1, -1)
+                4.0, 3.0, 2.0, 1.0, // (0, 1)
+                2.0, 4.0, 2.0, 4.0,// (2, 0)
+                1.0, -0.5, 0.0, -1.5// (-1, 0.5)
+            );
+
+            let spectra_planet = na::Matrix5x4::<f64>::new(
+                0.0, 0.0, 1.0, 2.0,
+                0.0, 0.0, 1.5, 3.0,
+                0.0, 0.0, 3.0, 3.5,
+                0.0, 0.0, 4.0, 4.0,
+                0.0, 0.0, 5.0, 2.0
+            );
+
+            let error = na::Matrix5x4::<f64>::zeros().add_scalar(1.0);
+
+            let spectra_total = spectra_planet + spectra_star;
+            let s = HashSet::from([0, 2]);
+            let cutoff_index = 2;
+
+            let b_of_t = coeffs::get_coeff_mat::<f64>(
+                &na::convert(spectra_total.columns(0,cutoff_index).clone_owned()),
+                &na::convert(error.columns(0,cutoff_index).clone_owned()),
+                &s,
+                true
+            ).unwrap();
+
+            let basis_total = get_basis_from_vectors::<f64>(&na::convert(spectra_total), &s);
+            let basis_planet = get_basis_from_vectors::<f64>(&na::convert(spectra_planet), &s);
+
+            let reconstructed = &b_of_t * basis_total;
+
+            let vpie = spectra_total - reconstructed;
+            let vpie_exp = spectra_planet - &b_of_t * basis_planet;
+            let res = vpie - vpie_exp;
+            assert!(res.abs()< na::Matrix5x4::zeros().add_scalar(1e-10));
+
+
 
         }
 }

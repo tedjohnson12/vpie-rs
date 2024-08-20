@@ -6,6 +6,17 @@
 
 use nalgebra as na;
 
+#[derive(Debug)]
+pub struct MatrixInversionError;
+
+impl std::fmt::Display for MatrixInversionError {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "Matrix inversion failed")
+    }
+}
+
+impl std::error::Error for MatrixInversionError {}
+
 
 /// Computes weights based on the uncertainty in the data.
 /// 
@@ -69,7 +80,7 @@ where
 pub fn get_mmat<T>(
     weights: &na::DMatrix<T>,
     bmat: &na::DMatrix<T>,
-) -> na::DMatrix<T>
+) ->  Result<na::DMatrix<T>, MatrixInversionError>
 where
     T: na::RealField
     {
@@ -77,7 +88,12 @@ where
     assert_eq!(weights.nrows(), n, "weights has shape {:?} but should be {:?}", weights.shape(), (n, n));
     assert_eq!(weights.ncols(), n, "weights has shape {:?} but should be {:?}", weights.shape(), (n, n));
 
-    weights * weights * bmat.transpose() * (bmat*weights*weights*bmat.transpose()).try_inverse().unwrap()
+    let inv_res = (bmat*weights*weights*bmat.transpose()).try_inverse();
+    
+    match inv_res {
+        Some(x) => Result::Ok(weights * weights * bmat.transpose() * x),
+        None => Result::Err(MatrixInversionError),
+    }
 }
 
 #[cfg(test)]
@@ -126,7 +142,7 @@ mod tests {
         );
 
         let w = get_weights::<f64>(&na::convert(na::Vector5::new(1.0, 1.0, 1.0, 1.0, 1.0)));
-        let m = get_mmat::<f64>(&w, &na::convert(bmat));
+        let m = get_mmat::<f64>(&w, &na::convert(bmat)).unwrap();
 
         let f = na::Vector5::new(0.0, 0.0, 1.0, 0.0, 0.0);
         assert_eq!(f.transpose(), f.transpose()*m.clone()*bmat.clone(), "mf = f, but is {:?}", m*f);
@@ -135,7 +151,7 @@ mod tests {
         assert!(f.transpose()!=f.transpose()*m.clone()*bmat.clone(), "mf = f, but is {:?}", m*f);
 
         let w = get_weights::<f64>(&na::convert(na::Vector5::new(1.0, 1.0, 1.0, f64::INFINITY, f64::INFINITY)));
-        let m = get_mmat::<f64>(&w, &na::convert(bmat));
+        let m = get_mmat::<f64>(&w, &na::convert(bmat)).unwrap();
         let f = na::Vector5::new(1.0, 1.0, 1.0, 1.0, 1.0); // impossible
         let f_exp = na::Vector5::new(1.0, 1.0, 1.0, -1.0, 1.0);
         let b = get_bi::<f64>(&na::convert(f), &w, &na::convert(bmat));

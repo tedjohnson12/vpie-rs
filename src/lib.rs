@@ -103,6 +103,19 @@ where
     Ok(f_rec)
 }
 
+/// Calculate the BIC
+/// 
+/// # Arguments
+/// 
+/// * `f_org` - Original spectra ($m \times n$)
+/// * `f_err` - Uncertainty in the data ($m \times n$)
+/// * `s` - Set of indices (length $q$)
+/// * `cutoff_index` - The number of NIR wavelength points to use in training ($n'$)
+/// * `use_mean_error` - Whether to use the mean error in the reconstruction
+/// 
+/// # Returns
+/// 
+/// * BIC
 pub fn calc_bic<T>(
     f_org: &na::DMatrix<T>,
     f_err: &na::DMatrix<T>,

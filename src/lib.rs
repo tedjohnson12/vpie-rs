@@ -31,8 +31,10 @@ where
 {
     let n = f_org.ncols();
     let q = s.len();
+    let mut svec = Vec::from_iter(s); 
+    svec.sort_unstable(); // All elements are unique
     let mut bmat = na::DMatrix::<T>::zeros(q, n);
-    for (i, _s) in s.into_iter().enumerate() {
+    for (i, _s) in svec.into_iter().enumerate() {
         bmat.set_row(i, &f_org.row(*_s))
     }
     bmat

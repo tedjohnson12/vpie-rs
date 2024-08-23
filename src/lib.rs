@@ -5,11 +5,14 @@ use nalgebra as na;
 
 mod bic;
 mod coeffs;
+mod search;
 
 pub use bic::bic;
 pub use bic::log_likelihood;
 
 pub use coeffs::{get_coeff_mat, get_mmat, get_weights};
+
+pub use search::agl_next_best;
 
 
 /// Get the $\mathcal{B}$ matrix from the set of spectra given the set $s$

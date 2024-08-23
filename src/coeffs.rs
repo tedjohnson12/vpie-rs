@@ -40,29 +40,6 @@ where
     let diag = na::DVector::<T>::repeat(f_err.len(), T::one()).component_div(f_err);
     na::Matrix::from_diagonal(&diag)
 }
-/// Computes the coefficients $\bm{b}(t_i)$
-/// 
-/// # Arguments
-///
-/// * `f_org` - Original data ($n \times 1$). This is $\bm{f}(t_i)$
-/// * `weights` - Weights ($n \times n$). This is $\mathcal{W}(t_i)$
-/// * `bmat` - Basis matrix ($q \times n$). This is $\mathbf{B}$
-pub fn get_bi<T>(
-    f_org: &na::DVector<T>,
-    weights: &na::DMatrix<T>,
-    bmat: &na::DMatrix<T>,
-) -> na::DVector<T>
-where 
-    T: na::RealField
-{
-    let n:usize = f_org.len();
-    let q:usize = bmat.nrows();
-    assert_eq!(bmat.ncols(), n, "bmat has shape {:?} but should be {:?}", bmat.shape(), (q, n));
-    assert_eq!(weights.nrows(), n, "weights has shape {:?} but should be {:?}", weights.shape(), (n, n));
-    assert_eq!(weights.ncols(), n, "weights has shape {:?} but should be {:?}", weights.shape(), (n, n));
-
-    (f_org.transpose() * weights*weights * bmat.transpose() * (bmat*weights*weights*bmat.transpose()).try_inverse().unwrap()).transpose()
-}
 
 /// Computes the matrix $\mathcal{M}$
 /// 
@@ -207,24 +184,6 @@ mod tests {
         assert_eq!(w, w_exp);
     }
 
-
-    #[test]
-    fn test_get_bi() {
-        let spectra = na::Matrix3::<f64>::new(1.0,1.0,1.0, // 8
-                                        1.0, 0.0, 1.0, // 2
-                                        1.0, -1.0, 0.0, // 3
-                                        );
-        let err = na::Vector3::new(1.0, 1.0, 1.0);
-        let weights = get_weights::<f64>(&na::convert(err));
-
-
-        let f_org = na::Vector3::new(13.0, 5.0, 10.0);
-
-        let b = get_bi::<f64>(&na::convert(f_org), &weights, &na::convert(spectra));
-        assert_eq!(b, na::Vector3::new(8.0, 2.0, 3.0), "b should be [8, 2, 3], but is {:?}", b);
-
-    }
-
     #[test]
     fn test_get_mmat() {
         let bmat = na::Matrix3x5::<f64>::new(
@@ -246,10 +205,6 @@ mod tests {
         let m = get_mmat::<f64>(&w, &na::convert(bmat)).unwrap();
         let f = na::Vector5::new(1.0, 1.0, 1.0, 1.0, 1.0); // impossible
         let f_exp = na::Vector5::new(1.0, 1.0, 1.0, -1.0, 1.0);
-        let b = get_bi::<f64>(&na::convert(f), &w, &na::convert(bmat));
-        let b_exp = na::Vector3::new(1.0, 1.0, 1.0);
-        assert_eq!(b, b_exp, "b should be [1, 1, 1], but is {:?}", b);
-        assert_eq!(f_exp.transpose(), b.clone().transpose()*bmat.clone(), "bB = f, but is {:?}", b.clone().transpose()*bmat.clone());
         assert_eq!(f_exp.transpose(), f.clone().transpose()*m.clone()*bmat.clone(), "fm = f, but is {:?}", m*f);
 
     }

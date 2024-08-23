@@ -9,8 +9,6 @@
 //! Where $q$ is the number of basis vectors, $n$ is the number of spectral bins, $m$ is the number
 //! of temporal bins, and $\hat{L}$ is the model likelihood.
 
-use core::f64;
-
 extern crate nalgebra as na;
 
 

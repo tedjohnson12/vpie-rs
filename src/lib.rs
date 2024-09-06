@@ -2,6 +2,7 @@
 use std::collections::HashSet;
 use std::result::Result;
 use nalgebra as na;
+use ndarray as nd;
 
 mod bic;
 mod coeffs;
@@ -148,6 +149,21 @@ where
     }
     
 }
+
+fn convert_from_ndarray<T>(arr: nd::Array2<f64>) -> na::DMatrix<T>
+where
+    T: na::RealField
+{
+    let (m, n) = arr.dim();
+    let mut out = na::DMatrix::<T>::zeros(m, n);
+    for i in 0..m {
+        for j in 0..n {
+            out[(i, j)] = T::from_f64(arr[[i, j]]).unwrap();
+        }
+    }
+    out
+}
+
 
 #[cfg(test)]
 mod tests {

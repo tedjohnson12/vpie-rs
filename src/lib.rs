@@ -6,7 +6,7 @@ use ndarray as nd;
 
 mod bic;
 mod coeffs;
-mod search;
+pub mod search;
 
 pub use bic::bic;
 pub use bic::log_likelihood;

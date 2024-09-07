@@ -6,4 +6,6 @@ edition = "2021"
 [dependencies]
 nalgebra = "0.33.0"
 num-traits = "0.2.19"
-ndarray = "0.16.1"
+ndarray = "0.15.6"
+pyo3 = "0.20.0"
+numpy = "0.20.0"

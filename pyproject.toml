@@ -1,0 +1,23 @@
+[build-system]
+requires = ["maturin>=1.3,<2.0"]
+build-backend = "maturin"
+
+[project]
+name = "vpie"
+authors = [
+    {name = "Ted Johnson", email = "ted.johnson@unlv.edu"},
+]
+description = "Variable Planetary Infrared Excess."
+readme = "readme.rst"
+
+version = "0.1.0"
+requires-python = ">=3.11"
+license = {text = "MIT"}
+dependencies = [
+
+    ]
+
+
+[tool.maturin]
+features = ["pyo3/extension-module"]
+module-name = "vpie._vpie_rs"

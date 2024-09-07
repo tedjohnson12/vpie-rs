@@ -6,9 +6,8 @@
 use core::f64;
 use std::collections::{HashMap, HashSet};
 use nalgebra as na;
-use ndarray as nd;
 
-use super::{calc_bic,convert_from_ndarray};
+use super::core::calc_bic;
 
 pub enum SearchResult<T> {
     Sucess(T, HashSet<usize>),
@@ -80,13 +79,15 @@ where
 mod test {
 
     use super::*;
+    use super::super::core::convert_from_ndarray;
+    use ndarray as nd;
 
     fn approx_planck<D>(wavelen: nd::Array<f64, D>, temp: f64) -> nd::Array<f64, D>
     where
         D: nd::Dimension,
     {
-        wavelen.powi(-5) * 1.0 / (
-            (1.0/wavelen/temp).exp() - 1.0
+        wavelen.mapv(|x| x.powi(5)) * 1.0 / (
+            (1.0/wavelen/temp).mapv(|x| x.exp()) - 1.0
         )
     }
 
@@ -114,13 +115,13 @@ mod test {
             1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9,
             2.0, 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8, 2.9,
         ]);
-        let spotfrac = t.sin() * 0.1 + 0.3;
+        let spotfrac = t.mapv(|x: f64| x.sin()) * 0.1 + 0.3;
         let temp1 = 0.2;
         let temp2 = 0.4;
         let (ww, ss) = meshgrid(&wl, &spotfrac);
         let f_star = approx_planck(ww.clone(), temp1) * ss.clone() + 
             approx_planck(ww.clone(), temp2) * (1.0 - ss.clone());
-        let err = (0.000000001*f_star.clone()).sqrt();
+        let err = (0.000000001*f_star.clone()).mapv(|x| x.sqrt());
         let f_star = convert_from_ndarray::<f64>(f_star);
         let err = convert_from_ndarray::<f64>(err);
         (f_star, err)

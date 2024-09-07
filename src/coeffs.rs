@@ -7,6 +7,8 @@ use std::collections::HashSet;
 use std::result::Result;
 use nalgebra as na;
 
+use super::core::get_basis_from_vectors;
+
 #[derive(Debug)]
 pub struct MatrixInversionError;
 
@@ -85,7 +87,7 @@ where
         let q = s.len();
         let m = f_org_nir.nrows();
         let mut coeff_mat = na::DMatrix::<T>::zeros(m, q);
-        let bmat = super::get_basis_from_vectors(f_org_nir, s);
+        let bmat = get_basis_from_vectors(f_org_nir, s);
         let weights = get_weights(&f_err_nir.row_mean().transpose());
 
         let mmat_res = get_mmat(&weights, &bmat);
@@ -115,7 +117,7 @@ where
         let q = s.len();
         let m = f_org_nir.nrows();
         let mut coeff_mat = na::DMatrix::<T>::zeros(m, q);
-        let bmat = super::get_basis_from_vectors(f_org_nir, s);
+        let bmat = get_basis_from_vectors(f_org_nir, s);
         
         for i in 0..m {
             let weights = get_weights(&f_err_nir.row(i).transpose());

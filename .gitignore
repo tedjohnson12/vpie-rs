@@ -1,2 +1,5 @@
 /target
 /test
+*.pyc
+*.so
+.vscode

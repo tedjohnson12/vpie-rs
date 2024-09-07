@@ -6,6 +6,8 @@ use std::collections::HashSet;
 use std::result::Result;
 use nalgebra as na;
 use ndarray as nd;
+use simba::scalar::{SubsetOf, SupersetOf};
+
 
 
 use super::bic;
@@ -156,6 +158,20 @@ where
     for i in 0..m {
         for j in 0..n {
             out[(i, j)] = T::from_f64(arr[[i, j]]).unwrap();
+        }
+    }
+    out
+}
+
+pub fn convert_to_ndarray<T>(arr: na::DMatrix<T>) -> nd::Array2<f64>
+where
+    T: na::RealField + SubsetOf<f64>
+{
+    let (m, n) = arr.shape();
+    let mut out = nd::Array2::<f64>::zeros((m, n));
+    for i in 0..m {
+        for j in 0..n {
+            out[[i, j]] = f64::from_subset(&arr[(i, j)]);
         }
     }
     out

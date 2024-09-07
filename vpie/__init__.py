@@ -1,4 +1,4 @@
 
 from . import _vpie_rs
 
-from .wrappers import search_next_best
+from .wrappers import search_next_best, get_coeffs

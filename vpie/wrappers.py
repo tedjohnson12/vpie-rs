@@ -23,13 +23,13 @@ def search_next_best(
     
     Parameters
     ----------
-    f_org
+    f_org : np.ndarray
         The original spectra to be approximated.
-    f_err
+    f_err : np.ndarray
         The error of the spectra.
-    cutoff_index
+    cutoff_index : int
         The number of wavelength points to use in the basis.
-    use_mean_error
+    use_mean_error : bool
         Whether to use the mean error in the reconstruction.
     
     Returns
@@ -39,3 +39,30 @@ def search_next_best(
     """
     return _vpie_rs.search_next_best(f_org, f_err, cutoff_index, use_mean_error)
     
+
+def get_coeffs(
+    f_org_nir: np.ndarray,
+    f_err_nir: np.ndarray,
+    s: Set[int],
+    use_mean_error: bool
+):
+    """
+    Get the basis coefficients given the basis set :math:`s`.
+    
+    Parameters
+    ----------
+    f_org_nir : np.ndarray
+        The original spectra to be approximated.
+    f_err_nir : np.ndarray
+        The error of the spectra.
+    s : set of int
+        The set of bases.
+    use_mean_error : bool
+        Whether to use the mean error in the reconstruction.
+    
+    Returns
+    -------
+    np.ndarray
+        The basis coefficients.
+    """
+    return _vpie_rs.get_coeffs(f_org_nir, f_err_nir, s, use_mean_error)

@@ -1,8 +1,9 @@
 
 
 use std::result;
+use std::collections::HashSet;
 
-use pyo3::{pymodule,pyfunction,PyResult, Python, wrap_pyfunction};
+use pyo3::{pymodule,pyfunction,PyResult, Python, wrap_pyfunction, Py};
 use pyo3::types::{PyModule, PySet,};
 use pyo3::create_exception;
 use pyo3::exceptions::PyRuntimeError;
@@ -40,11 +41,46 @@ fn search_next_best<'py>(py: Python<'py>,
 
     }
 
+#[pyfunction]
+fn get_coeffs<'py>(
+    py: Python<'py>,
+    f_org_nir: np::PyReadonlyArray2<f64>,
+    f_err_nir: np::PyReadonlyArray2<f64>,
+    s: Py<PySet>,
+    use_mean_error: bool
+) -> PyResult<&'py np::PyArray2<f64>> {
+
+    let f_org_nir = f_org_nir.as_array().to_owned();
+    let f_org_nir = core::convert_from_ndarray::<f64>(f_org_nir);
+
+    let f_err_nir = f_err_nir.as_array().to_owned();
+    let f_err_nir = core::convert_from_ndarray::<f64>(f_err_nir);
+
+    let mut s_rs: HashSet<usize> = HashSet::new();
+
+    let s = s.as_ref(py);
+    for x in s.iter() {
+        s_rs.insert(x.extract::<usize>().unwrap());
+    }
+
+    let res = coeffs::get_coeff_mat::<f64>(&f_org_nir, &f_err_nir, &s_rs, use_mean_error);
+
+    match res {
+        Result::Err(e) => PyResult::Err(PyRuntimeError::new_err(format!("Error: {}", e))),
+        Result::Ok(x) => {
+            let x = core::convert_to_ndarray(x);
+            let x = np::PyArray2::from_array(py, &x);
+            PyResult::Ok(x)
+        }
+    }
+}
+
 
 #[pymodule]
 fn _vpie_rs<'py>(_py: Python<'py>, m: &PyModule) -> PyResult<()> {
 
     m.add_function(wrap_pyfunction!(search_next_best, m)?)?;
+    m.add_function(wrap_pyfunction!(get_coeffs, m)?)?;
     
 
     Ok(())

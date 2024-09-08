@@ -74,6 +74,34 @@ fn get_coeffs<'py>(
         }
     }
 }
+#[pyfunction]
+fn get_reconstruction<'py>(
+    py: Python<'py>,
+    flux: np::PyReadonlyArray2<f64>,
+    coeffs: np::PyReadonlyArray2<f64>,
+    s: Py<PySet>,
+) -> PyResult<&'py np::PyArray2<f64>> {
+
+    let flux = flux.as_array().to_owned();
+    let flux = core::convert_from_ndarray::<f64>(flux);
+
+    let coeffs = coeffs.as_array().to_owned();
+    let coeffs = core::convert_from_ndarray::<f64>(coeffs);
+
+    let mut s_rs: HashSet<usize> = HashSet::new();
+
+    let s = s.as_ref(py);
+    for x in s.iter() {
+        s_rs.insert(x.extract::<usize>().unwrap());
+    }
+
+    let basis = core::get_basis_from_vectors::<f64>(&flux, &s_rs);
+
+    let reconstruction = coeffs * basis;
+    let reconstruction = core::convert_to_ndarray(reconstruction);
+    let reconstruction = np::PyArray2::from_array(py, &reconstruction);
+    PyResult::Ok(reconstruction)
+}
 
 
 #[pymodule]
@@ -81,6 +109,7 @@ fn _vpie_rs<'py>(_py: Python<'py>, m: &PyModule) -> PyResult<()> {
 
     m.add_function(wrap_pyfunction!(search_next_best, m)?)?;
     m.add_function(wrap_pyfunction!(get_coeffs, m)?)?;
+    m.add_function(wrap_pyfunction!(get_reconstruction, m)?)?;
     
 
     Ok(())

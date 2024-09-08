@@ -66,3 +66,29 @@ def get_coeffs(
         The basis coefficients.
     """
     return _vpie_rs.get_coeffs(f_org_nir, f_err_nir, s, use_mean_error)
+
+def get_reconstruction(
+    flux: np.ndarray,
+    coeffs: np.ndarray,
+    s: Set[int],
+) -> np.ndarray:
+    """
+    Reconstruct an observation given the basis coefficients and the basis set :math:`s`.
+    
+    Essentially selects some set of spectra in ``flux`` and then does a matrix multiplication.
+    
+    Parameters
+    ----------
+    flux : np.ndarray
+        The observation to be reconstructed.
+    coeffs : np.ndarray
+        The basis coefficients.
+    s : set of int
+        The set of bases.
+    
+    Returns
+    -------
+    np.ndarray
+        The reconstructed observation.
+    """
+    return _vpie_rs.get_reconstruction(flux, coeffs, s)

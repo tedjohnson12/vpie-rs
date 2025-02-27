@@ -1,16 +1,11 @@
 
 
-use std::result;
 use std::collections::HashSet;
 
 use pyo3::{pymodule,pyfunction,PyResult, Python, wrap_pyfunction, Py};
 use pyo3::types::{PyModule, PySet,};
-use pyo3::create_exception;
 use pyo3::exceptions::PyRuntimeError;
 use numpy as np;
-use ndarray as nd;
-use nalgebra as na;
-use log;
 
 mod bic;
 mod coeffs;

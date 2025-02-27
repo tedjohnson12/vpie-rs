@@ -56,6 +56,16 @@ class Parameter:
         return self._prior(u)
 
 class Prior:
+    """
+    Class of prior functions with their inverse.
+    
+    Parameters
+    ----------
+    forward : Callable
+        The forward transform
+    inverse : Callable
+        The inverse transform
+    """
     def __init__(
         self,
         forward: Callable,
@@ -65,6 +75,11 @@ class Prior:
         self._inverse = inverse
     
     def __call__(self, u):
+        """
+        Forward transform
+        
+        Map u on the interval [0,1] to x
+        """
         return self._forward(u)
     
     def inverse(self, x):

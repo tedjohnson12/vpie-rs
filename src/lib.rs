@@ -10,6 +10,7 @@ use pyo3::exceptions::PyRuntimeError;
 use numpy as np;
 use ndarray as nd;
 use nalgebra as na;
+use log;
 
 mod bic;
 mod coeffs;
@@ -106,7 +107,8 @@ fn get_reconstruction<'py>(
 
 #[pymodule]
 fn _vpie_rs<'py>(_py: Python<'py>, m: &PyModule) -> PyResult<()> {
-
+    
+    pyo3_log::init();
     m.add_function(wrap_pyfunction!(search_next_best, m)?)?;
     m.add_function(wrap_pyfunction!(get_coeffs, m)?)?;
     m.add_function(wrap_pyfunction!(get_reconstruction, m)?)?;

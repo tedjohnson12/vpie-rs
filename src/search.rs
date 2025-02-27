@@ -6,6 +6,7 @@
 use core::f64;
 use std::collections::{HashMap, HashSet};
 use nalgebra as na;
+use log;
 
 use super::core::calc_bic;
 
@@ -38,6 +39,7 @@ pub fn agl_next_best<T>(
 where
     T: na::RealField
 {
+    log::info!("Starting Next Best Algorithm");
     let m = f_org.nrows();
     let mut s_best = HashSet::<usize>::new();
     let mut val_best = T::from_f64(f64::INFINITY).unwrap();
@@ -64,13 +66,16 @@ where
             }
         }
         if candidates.is_empty() {
+            log::info!("Search completed with {} bases", s_best.len());
             return SearchResult::Sucess(val_best, s_best);
         }
         else {
             let i_best = candidates.iter().find_map(|(key, _val)| if _val==&val_best {Some(key)} else {None}).unwrap();
+            log::info!("Best candidate is {}", i_best);
             s_best.insert(i_best.clone());
         }
     }
+    log::error!("Search failed");
     return SearchResult::Failure;
 }
 

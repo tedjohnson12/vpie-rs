@@ -11,7 +11,6 @@
 
 extern crate nalgebra as na;
 
-
 /// Computes the Bayesian Information Criterion
 /// 
 /// # Arguments

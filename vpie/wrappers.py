@@ -5,9 +5,34 @@ Just so language servers can find them.
 """
 
 from typing import Set, Tuple
+import logging
 import numpy as np
-
+import colorlog
 from . import _vpie_rs
+
+handler = colorlog.StreamHandler()
+formatter = colorlog.ColoredFormatter(
+    "[%(asctime)s] %(log_color)s[%(levelname)s]%(reset)s %(message)s (%(filename)s:%(lineno)d)%(reset)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+	reset=True,
+	log_colors={
+		'DEBUG':    'cyan',
+		'INFO':     'green',
+		'WARNING':  'yellow',
+		'ERROR':    'red',
+		'CRITICAL': 'red,bg_white',
+	},
+	# secondary_log_colors={},
+	# style='%'
+)
+
+handler.setFormatter(formatter)
+
+
+# FORMAT = '%(levelname)s %(name)s %(asctime)-15s %(filename)s:%(lineno)d %(message)s'
+# logging.basicConfig(format=FORMAT)
+logging.getLogger().setLevel(logging.INFO)
+logging.getLogger().addHandler(handler)
 
 def search_next_best(
     f_org: np.ndarray,

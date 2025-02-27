@@ -9,7 +9,6 @@ use ndarray as nd;
 use simba::scalar::{SubsetOf, SupersetOf};
 
 
-
 use super::bic;
 
 use super::coeffs::{get_mmat, get_weights};
@@ -141,8 +140,9 @@ where
                 f_org.columns(0, cutoff_index).clone_owned(),
                 f_rec.columns(0, cutoff_index).clone_owned(),
                 f_err.columns(0, cutoff_index).clone_owned());
-            
-            return Result::Ok(bic::bic(q.try_into().unwrap(), _n.try_into().unwrap(), m.try_into().unwrap(),lnl))
+            let _bic = bic::bic(q.try_into().unwrap(), _n.try_into().unwrap(), m.try_into().unwrap(),lnl);
+            log::debug!("bic: {} for s: {:?}", _bic, s);
+            return Result::Ok(_bic)
         },
         Err(e) => return Result::Err(e)
     }

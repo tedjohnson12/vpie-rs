@@ -8,6 +8,7 @@ import numpy as np
 # pylint: disable-next=no-name-in-module
 from ._vpie_rs import search_next_best, get_coeffs, get_reconstruction
 
+
 def get_vpie(
     f_org: np.ndarray,
     f_err: np.ndarray,
@@ -16,7 +17,7 @@ def get_vpie(
 ) -> Tuple[Set[int], np.ndarray, np.ndarray]:
     """
     Get the important quantities needed to do a retrieval later.
-    
+
     Parameters
     ----------
     f_org : np.ndarray
@@ -27,7 +28,7 @@ def get_vpie(
         The number of wavelength points to use in the basis.
     use_mean_error : bool
         Whether to use the mean error in the reconstruction.
-    
+
     Returns
     -------
     s : set of int
@@ -38,6 +39,7 @@ def get_vpie(
         The reconstructed observation.
     """
     s: Set[int] = search_next_best(f_org, f_err, cutoff_index, use_mean_error)
-    coeffs: np.ndarray = get_coeffs(f_org[:,:cutoff_index], f_err[:,:cutoff_index], s, use_mean_error)
+    coeffs: np.ndarray = get_coeffs(
+        f_org[:, :cutoff_index], f_err[:, :cutoff_index], s, use_mean_error)
     f_rec: np.ndarray = get_reconstruction(f_org, coeffs, s)
     return s, coeffs, f_rec

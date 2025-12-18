@@ -13,7 +13,9 @@ def get_vpie(
     f_org: np.ndarray,
     f_err: np.ndarray,
     cutoff_index: int,
-    use_mean_error: bool
+    use_mean_error: bool,
+    ic_string: str,
+    max_basis_size: int|None = None
 ) -> Tuple[Set[int], np.ndarray, np.ndarray]:
     """
     Get the important quantities needed to do a retrieval later.
@@ -28,6 +30,8 @@ def get_vpie(
         The number of wavelength points to use in the basis.
     use_mean_error : bool
         Whether to use the mean error in the reconstruction.
+    ic_string : str
+        The information criterion to use. Options: BIC, AIC
 
     Returns
     -------
@@ -38,7 +42,7 @@ def get_vpie(
     f_rec : np.ndarray
         The reconstructed observation.
     """
-    s: Set[int] = search_next_best(f_org, f_err, cutoff_index, use_mean_error)
+    s: Set[int] = search_next_best(f_org, f_err, cutoff_index, use_mean_error, ic_string, max_basis_size)
     coeffs: np.ndarray = get_coeffs(
         f_org[:, :cutoff_index], f_err[:, :cutoff_index], s, use_mean_error)
     f_rec: np.ndarray = get_reconstruction(f_org, coeffs, s)

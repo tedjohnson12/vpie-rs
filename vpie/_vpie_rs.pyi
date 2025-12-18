@@ -13,7 +13,9 @@ def search_next_best(
     f_org: np.ndarray,
     f_err: np.ndarray,
     cutoff_index: int,
-    use_mean_error: bool
+    use_mean_error: bool,
+    ic_string: str,
+    max_bases: int|None,
 ) -> Set[int]:
     """
     Use the Next Best Algorithm to find the best set of bases.
@@ -28,6 +30,10 @@ def search_next_best(
         The number of wavelength points to use in the basis.
     use_mean_error : bool
         Whether to use the mean error in the reconstruction.
+    ic_string : str
+        The information criterion to use. Options: BIC, AIC
+    max_bases : int
+        The maximum number of bases to use. If None, rely on stopping criterion.
 
     Returns
     -------

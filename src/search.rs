@@ -8,7 +8,8 @@ use std::collections::{HashMap, HashSet};
 use nalgebra as na;
 use log;
 
-use super::core::calc_bic;
+use super::core::calc_ic;
+use super::bic::InformationCriterion;
 
 pub enum SearchResult<T> {
     Sucess(T, HashSet<usize>),
@@ -34,7 +35,9 @@ pub fn agl_next_best<T>(
     f_org: &na::DMatrix<T>,
     f_err: &na::DMatrix<T>,
     cutoff_index: usize,
-    use_mean_error: bool
+    use_mean_error: bool,
+    information_criterion: InformationCriterion,
+    max_bases: Option<usize>
 ) -> SearchResult<T>
 where
     T: na::RealField
@@ -53,7 +56,7 @@ where
             else{
                 let mut s_temp = s_base.clone();
                 s_temp.insert(i);
-                let val_result = calc_bic(f_org, f_err, &s_temp, cutoff_index, use_mean_error);
+                let val_result = calc_ic(f_org, f_err, &s_temp, cutoff_index, use_mean_error, &information_criterion);
                 match val_result {
                     Err(_) => continue,
                     Ok(val) => {
@@ -73,6 +76,12 @@ where
             let i_best = candidates.iter().find_map(|(key, _val)| if _val==&val_best {Some(key)} else {None}).unwrap();
             log::info!("Best candidate is {}", i_best);
             s_best.insert(i_best.clone());
+            if let Some(max_bases) = max_bases {
+                if s_best.len() >= max_bases {
+                    log::info!("Ending search early with {} bases", s_best.len());
+                    return SearchResult::Sucess(val_best, s_best);
+                }
+            }
         }
     }
     log::error!("Search failed");
@@ -139,7 +148,7 @@ mod test {
         let f_err = err.clone();
         let cutoff_index = 3;
 
-        let res = agl_next_best(&f_org, &f_err, cutoff_index, false);
+        let res = agl_next_best(&f_org, &f_err, cutoff_index, false, InformationCriterion::BIC, None);
         match res {
             SearchResult::Failure => assert!(false, "Failure"),
             SearchResult::Sucess(v,s ) =>{

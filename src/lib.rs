@@ -18,15 +18,18 @@ fn search_next_best<'py>(py: Python<'py>,
     f_org: np::PyReadonlyArray2<f64>,
     f_err: np::PyReadonlyArray2<f64>,
     cutoff_index: usize,
-    use_mean_error: bool
+    use_mean_error: bool,
+    ic_string: &str,
+    max_bases: Option<usize>
+
     ) -> PyResult<&'py PySet> {
         let f_org = f_org.as_array().to_owned();
         let f_org = core::convert_from_ndarray::<f64>(f_org);
 
         let f_err = f_err.as_array().to_owned();
         let f_err = core::convert_from_ndarray::<f64>(f_err);
-
-        let result = search::agl_next_best(&f_org, &f_err, cutoff_index, use_mean_error);
+        let information_criterion = bic::ic_from_str(ic_string);
+        let result = search::agl_next_best(&f_org, &f_err, cutoff_index, use_mean_error,information_criterion, max_bases);
         match result {
             search::SearchResult::Failure => PyResult::Err(PyRuntimeError::new_err("Failure in search")),
             search::SearchResult::Sucess(_, s) => {

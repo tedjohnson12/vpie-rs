@@ -35,6 +35,78 @@ where
 {   
     T::from_u32(q).unwrap() * (T::from_u32(n).unwrap() * T::from_u32(m).unwrap()).ln() - T::from_u32(2).unwrap() * ln_l
 }
+/// Computes the Akaike Information Criterion
+/// 
+/// # Arguments
+/// 
+/// * `q` - Number of basis vectors
+/// * `ln_l` - Log likelihood
+/// 
+/// # Returns
+/// 
+/// * AIC
+pub fn aic<T>(
+    q: u32,
+    ln_l: T
+) -> T
+where
+    T: na::RealField
+{
+    T::from_u32(2*q).unwrap() - T::from_u32(2).unwrap() * ln_l
+}
+/// Information Criterion
+/// 
+/// Possible values: BIC, AIC
+pub enum InformationCriterion {
+    BIC,
+    AIC,
+}
+/// Computes the information criterion generally
+/// 
+/// # Arguments
+/// 
+/// * `ic` - Information criterion enum
+/// * `q` - Number of basis vectors
+/// * `n` - Number of spectral bins
+/// * `m` - Number of temporal bins
+/// * `ln_l` - Log likelihood
+/// 
+/// # Returns
+/// 
+/// * Information criterion
+pub fn calc_information_criterion<T>(
+    ic: &InformationCriterion,
+    q: u32,
+    n: u32,
+    m: u32,
+    ln_l: T
+) -> T
+where
+    T: na::RealField
+{
+    match ic {
+        InformationCriterion::BIC => bic(q, n, m, ln_l),
+        InformationCriterion::AIC => aic(q, ln_l),
+    }
+}
+/// Converts a string to an information criterion enum
+/// 
+/// # Arguments
+/// 
+/// * `ic_str` - Information criterion string
+/// 
+/// # Returns
+/// 
+/// * Information criterion
+pub fn ic_from_str(ic_str: &str) -> InformationCriterion {
+    match ic_str.to_lowercase().as_str() {
+        "bic" => InformationCriterion::BIC,
+        "aic" => InformationCriterion::AIC,
+        _ => panic!("Unknown information criterion: {}", ic_str),
+    }
+}
+
+
 /// Computes the log likelihood given a set of data.
 /// 
 /// # Arguments

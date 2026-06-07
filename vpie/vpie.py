@@ -6,7 +6,7 @@ from typing import Set, Tuple
 import numpy as np
 
 # pylint: disable-next=no-name-in-module
-from ._vpie_rs import search_next_best, get_coeffs, get_reconstruction
+from ._vpie_rs import search_next_best, get_coeffs, get_reconstruction, bin_image as _bin_image_rs
 
 
 def get_vpie(
@@ -47,3 +47,33 @@ def get_vpie(
         f_org[:, :cutoff_index], f_err[:, :cutoff_index], s, use_mean_error)
     f_rec: np.ndarray = get_reconstruction(f_org, coeffs, s)
     return s, coeffs, f_rec
+
+def bin_image(
+    image: np.ndarray,
+    nwl: int,
+    ntime: int,
+    power: int
+):
+    """
+    Reduce the size of an image using a 2D window. The value of each pixel is
+    computing using a generic mean with a power specified by `power`.
+    
+    Parameters
+    ----------
+    image : np.ndarray (nwl, ntime)
+        The image to be binned.
+    nwl : int
+        The window size along the wavelength axis.
+    ntime : int
+        The window size along the time axis.
+    power : int
+        The power to use in the mean. Use 1 for a linear mean, 2 for a quadratic mean,
+        -1 for inverses, etc.
+
+    Returns
+    -------
+    np.ndarray (new_nwl, new_ntime)
+        The binned image
+    """
+    return _bin_image_rs(np.atleast_2d(image).astype(np.float64), nwl, ntime, power)
+    

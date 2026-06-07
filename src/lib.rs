@@ -120,6 +120,22 @@ fn bin_image<'py>(
     let binned_image = np::PyArray2::from_array(py, &binned_image);
     PyResult::Ok(binned_image)
 }
+#[pyfunction]
+fn fold_image<'py>(
+    py: Python<'py>,
+    image: np::PyReadonlyArray2<f64>,
+    stride: usize,
+    power: i32
+) -> PyResult<&'py np::PyArray2<f64>> {
+    let image = image.as_array().to_owned();
+    let binned_image = utils::fold_image(
+        &image,
+        stride,
+        power
+    );
+    let binned_image = np::PyArray2::from_array(py, &binned_image);
+    PyResult::Ok(binned_image)
+}
 
 
 #[pymodule]
@@ -130,6 +146,7 @@ fn _vpie_rs<'py>(_py: Python<'py>, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(get_coeffs, m)?)?;
     m.add_function(wrap_pyfunction!(get_reconstruction, m)?)?;
     m.add_function(wrap_pyfunction!(bin_image, m)?)?;
+    m.add_function(wrap_pyfunction!(fold_image, m)?)?;
     
 
     Ok(())

@@ -94,3 +94,59 @@ def get_reconstruction(
         The reconstructed observation.
     """
     ...
+def bin_image(
+    image: np.ndarray,
+    nwl: int,
+    ntime: int,
+    power: int
+):
+    """
+    Reduce the size of an image using a 2D window. The value of each pixel is
+    computing using a generic mean with a power specified by `power`.
+    
+    Parameters
+    ----------
+    image : np.ndarray (nwl, ntime)
+        The image to be binned. Strictly must be 2D and have dtype np.float64.
+        For a more forgiving interface, use `vpie.bin_image`
+        
+    nwl : int
+        The window size along the wavelength axis.
+    ntime : int
+        The window size along the time axis.
+    power : int
+        The power to use in the mean. Use 1 for a linear mean, 2 for a quadratic mean,
+        -1 for inverses, etc.
+
+    Returns
+    -------
+    np.ndarray (new_nwl, new_ntime)
+        The binned image
+    """
+    ...
+def fold_image(
+    image: np.ndarray,
+    stride: int,
+    power: int
+):
+    """
+    Phase fold an image using a 1D time stride. The value of each pixel is
+    computing using a generic mean with a power specified by `power`.
+    
+    Parameters
+    ----------
+    image : np.ndarray (nwl, ntime)
+        The image to be folded. Strictly must be 2D and have dtype np.float64.
+        For a more forgiving interface, use `vpie.fold_image`
+    stride : int
+        The fold period in pixels.
+    power : int
+        The power to use in the mean. Use 1 for a linear mean, 2 for a quadratic mean,
+        -1 for inverses, etc.
+
+    Returns
+    -------
+    np.ndarray (nwl, new_ntime)
+        The folded image
+    """
+    ...

@@ -6,7 +6,7 @@ from typing import Set, Tuple
 import numpy as np
 
 # pylint: disable-next=no-name-in-module
-from ._vpie_rs import search_next_best, get_coeffs, get_reconstruction, bin_image as _bin_image_rs
+from ._vpie_rs import search_next_best, get_coeffs, get_reconstruction, bin_image as _bin_image_rs, fold_image as _fold_image_rs
 
 
 def get_vpie(
@@ -76,4 +76,31 @@ def bin_image(
         The binned image
     """
     return _bin_image_rs(np.atleast_2d(image).astype(np.float64), nwl, ntime, power)
+
+def fold_image(
+    image: np.ndarray,
+    stride: int,
+    power: int
+):
+    """
+    Phase fold an image using a 1D time stride. The value of each pixel is
+    computing using a generic mean with a power specified by `power`.
+    
+    Parameters
+    ----------
+    image : np.ndarray (nwl, ntime)
+        The image to be folded.
+    stride : int
+        The fold period in pixels.
+    power : int
+        The power to use in the mean. Use 1 for a linear mean, 2 for a quadratic mean,
+        -1 for inverses, etc.
+
+    Returns
+    -------
+    np.ndarray (nwl, new_ntime)
+        The folded image
+    """
+    return _fold_image_rs(np.atleast_2d(image).astype(np.float64), stride, power)
+    
     

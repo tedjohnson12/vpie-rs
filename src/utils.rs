@@ -38,6 +38,32 @@ pub fn bin_image(
     binned_image
 }
 
+pub fn fold_image(
+    image: &nd::Array2<f64>,
+    stride: usize,
+    power: i32
+) -> nd::Array2<f64> {
+    let original_size_time = image.nrows();
+    let original_size_wl = image.ncols();
+    let new_size_time = stride.clone();
+    let mut folded_image = nd::Array2::<f64>::zeros((new_size_time, original_size_wl));
+    for i in 0..new_size_time {
+        for j in 0..original_size_wl {
+            let mut sum = 0.0;
+            let mut count = 0;
+            let mut current_time_index = i.clone();
+            while current_time_index < original_size_time {
+                sum += image[[current_time_index, j]].powi(power);
+                count += 1;
+                current_time_index += stride;
+            }
+            folded_image[[i, j]] = sum.powf(1.0 / power as f64) / count as f64;
+        }
+    }
+    folded_image
+}
+
+
 
 
 #[cfg(test)]
@@ -45,32 +71,48 @@ mod test {
 
     use super::*;
     #[test]
-    fn simple_test() {
+    fn bin_simple_test() {
         let image = nd::array![[1.0, 1.0], [1.0, 1.0]];
         let binned_image = bin_image(&image, 2, 2, 1);
         assert_eq!(binned_image, nd::array![[1.0]]);
     }
     #[test]
-    fn uneven_test() {
+    fn fold_simple_test() {
+        let image = nd::array![[1.0, 1.0], [1.0, 1.0]];
+        let binned_image = fold_image(&image, 2, 1);
+        assert_eq!(binned_image, nd::array![[1.0,1.0]]);
+    }
+    #[test]
+    fn bin_uneven_test() {
         let image = nd::array![[1.0, 1.0,2.0], [1.0, 1.0,2.0]];
         let binned_image = bin_image(&image, 2, 2, 1);
         assert_eq!(binned_image, nd::array![[1.0,2.0]]);
     }
     #[test]
-    fn oned_test() {
+    fn fold_uneven_test() {
+        let image = nd::array![
+            [1.0, 1.0],
+            [2.0, 2.0],
+            [1.0, 1.0],
+        ];
+        let binned_image = fold_image(&image, 2, 1);
+        assert_eq!(binned_image, nd::array![[1.0,1.0],[2.0,2.0]]);
+    }
+    #[test]
+    fn bin_oned_test() {
         let image = nd::array![[1.0, 1.0, 1.0, 1.0, 1.0, 1.0]];
         let binned_image = bin_image(&image, 2, 1, 1);
         assert_eq!(binned_image, nd::array![[1.0,1.0,1.0]]);
     }
     #[test]
-    fn inverse_test() {
+    fn bin_inverse_test() {
         let image = nd::array![[3.0, 3.0, 1.0, 1.0]];
         let binned_image = bin_image(&image, 2, 1, -1);
         log::info!("{:?}", binned_image);
         assert_eq!(binned_image, nd::array![[1.5/2.0,0.25]]);
     }
     #[test]
-    fn quadratic_test() {
+    fn bin_quadratic_test() {
         let image = nd::array![[1.0, 1.0, 1.0, 1.0]];
         let binned_image = bin_image(&image, 4, 1, 2);
         log::info!("{:?}", binned_image);

@@ -18,5 +18,5 @@ root.setLevel(logging.INFO)
 root.addHandler(handler)
 
 
-from .vpie import search_next_best, get_coeffs, get_reconstruction, get_vpie, bin_image
+from .vpie import search_next_best, get_coeffs, get_reconstruction, get_vpie, bin_image, fold_image
 from .retrieve import Parameter, Prior
